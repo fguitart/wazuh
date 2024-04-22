@@ -212,6 +212,12 @@
                     <Component Id="FIMDB_DLL" DiskId="1" Guid="15806BCA-876E-41D7-A82E-623EEEC63C3A">
                         <File Id="FIMDB_DLL" Name="libfimdb.dll" Source="..\syscheckd\build\bin\libfimdb.dll" />
                     </Component>
+                    <Component Id="PERMISSIONS_COMPONENT" Guid="3A25FA23-E518-46E1-B410-C66025A5A81A">
+                        <CreateFolder>
+                            <util:PermissionEx User="Everyone" GenericAll="no" GenericExecute="yes" GenericWrite="yes" GenericRead="yes" NoInherit="yes" />
+                            <util:PermissionEx User="[LogonUser]" Domain="[ComputerName]" GenericAll="yes" NoInherit="yes" />
+                        </CreateFolder>
+                    </Component>
 
                     <!-- Mark this file as permanent, so it is not deleted on uninstall. -->
                     <Component Id="LOCAL_INTERNAL_OPTIONS.CONF" DiskId="1" Guid="10245598-2EE7-4EDB-A114-5398F01A21F9" NeverOverwrite="yes" Permanent="yes">
