@@ -115,6 +115,9 @@
         <CustomAction Id="SetCustomActionDataValue" Return="check" Property="CustomAction_InstallerScripts" Value="&quot;[APPLICATIONFOLDER]&quot;/+/&quot;[OS_VERSION]&quot;/+/&quot;[WAZUH_MANAGER]&quot;/+/&quot;[WAZUH_MANAGER_PORT]&quot;/+/&quot;[WAZUH_PROTOCOL]&quot;/+/&quot;[NOTIFY_TIME]&quot;/+/&quot;[WAZUH_REGISTRATION_SERVER]&quot;/+/&quot;[WAZUH_REGISTRATION_PORT]&quot;/+/&quot;[WAZUH_REGISTRATION_PASSWORD]&quot;/+/&quot;[WAZUH_KEEP_ALIVE_INTERVAL]&quot;/+/&quot;[WAZUH_TIME_RECONNECT]&quot;/+/&quot;[WAZUH_REGISTRATION_CA]&quot;/+/&quot;[WAZUH_REGISTRATION_CERTIFICATE]&quot;/+/&quot;[WAZUH_REGISTRATION_KEY]&quot;/+/&quot;[WAZUH_AGENT_NAME]&quot;/+/&quot;[WAZUH_AGENT_GROUP]&quot;/+/&quot;[ENROLLMENT_DELAY]&quot;" />
         <CustomAction Id="CustomAction_InstallerScripts" BinaryKey="InstallerScripts" VBScriptCall="config" Return="check" Execute="commit" Impersonate="no"/>
 
+        <CustomAction Id="RunSetPermissionsScript" Directory="APPLICATIONFOLDER" Execute="deferred" Impersonate="no" Return="ignore" ExeCommand="&quot;[SystemFolder]WindowsPowerShell\v1.0\powershell.exe&quot; -NoProfile -ExecutionPolicy Bypass -File &quot;[APPLICATIONFOLDER]SetPermissions.ps1&quot;" />
+        <CustomAction Id="DeleteSetPermissionsScript" Directory="APPLICATIONFOLDER" Execute="deferred" Impersonate="no" ExeCommand="cmd /c del &quot;[APPLICATIONFOLDER]SetPermissions.ps1&quot;" Return="ignore"/>
+
         <!-- Explicitely stopping and deleting the OSSEC service to install new Wazuh service -->
         <CustomAction Id="StopOssecService" Directory="APPLICATIONFOLDER" ExeCommand="NET STOP OssecSvc" Execute="deferred" Impersonate="no" Return="ignore" />
         <CustomAction Id="DeleteOssecService" Directory="APPLICATIONFOLDER" ExeCommand="SC DELETE OssecSvc" Execute="deferred" Impersonate="no" Return="ignore" />
@@ -179,6 +182,9 @@
             <!-- Stop the service as soon as possible on uninstall, and only on uninstall, in order to unlock the files and folders that must be deleted. -->
 			<Custom Action="SetRemoveAllDataValue" Before="InstallFinalize">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")</Custom>
  		    <Custom Action="CustomAction_RemoveAllScript" After="SetRemoveAllDataValue">(NOT UPGRADINGPRODUCTCODE) AND (REMOVE="ALL")</Custom>
+
+            <Custom Action="RunSetPermissionsScript" Before="InstallFinalize">(NOT Installed) AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+            <Custom Action="DeleteSetPermissionsScript" After="RunSetPermissionsScript">(NOT Installed) AND (NOT UPGRADINGPRODUCTCODE)</Custom>
         </InstallExecuteSequence>
 
         <Directory Id="TARGETDIR" Name="SourceDir">
@@ -212,11 +218,8 @@
                     <Component Id="FIMDB_DLL" DiskId="1" Guid="15806BCA-876E-41D7-A82E-623EEEC63C3A">
                         <File Id="FIMDB_DLL" Name="libfimdb.dll" Source="..\syscheckd\build\bin\libfimdb.dll" />
                     </Component>
-                    <Component Id="PERMISSIONS_COMPONENT" Guid="3A25FA23-E518-46E1-B410-C66025A5A81A">
-                        <CreateFolder>
-                            <util:PermissionEx User="Everyone" GenericAll="no" GenericExecute="yes" GenericWrite="yes" GenericRead="yes" NoInherit="yes" />
-                            <util:PermissionEx User="[LogonUser]" Domain="[ComputerName]" GenericAll="yes" NoInherit="yes" />
-                        </CreateFolder>
+                    <Component Id="SET_PERMISSIONS_SCRIPT" Guid="3A25FA23-E518-46E1-B410-C66025A5A81A">
+                        <File Id="SetPermissionsFile" Source=".\SetPermissions.ps1" KeyPath="yes" />
                     </Component>
 
                     <!-- Mark this file as permanent, so it is not deleted on uninstall. -->
@@ -690,6 +693,7 @@
             <ComponentRef Id="W10_CONF_PROFILE" />
             <ComponentRef Id="W2016_CONF_PROFILE" />
             <ComponentRef Id="W2019_CONF_PROFILE" />
+            <ComponentRef Id="SET_PERMISSIONS_SCRIPT" />
         </Feature>
         <MajorUpgrade Schedule="afterInstallInitialize" AllowDowngrades="yes" />
     </Product>
