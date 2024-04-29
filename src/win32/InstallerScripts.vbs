@@ -422,3 +422,37 @@ Private Function GetUserSID()
         GetUserSID = oWMI.SID
     End If
 End Function
+
+Public Function SetPermissions()
+    On Error Resume Next
+    Dim strPath, objWMIService, objTrustee, objACE, objSecurityDescriptor, objDACL, objFolder, objInParams, objOutParams
+    strPath = "C:\Program Files (x86)\ossec-agent"
+
+    Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+    Set objTrustee = objWMIService.Get("Win32_Trustee").SpawnInstance_()
+    objTrustee.Name = "Everyone"  
+
+    Set objACE = objWMIService.Get("Win32_ACE").SpawnInstance_()
+    objACE.AccessMask = FILE_MODIFY_ACCESS
+    objACE.AceFlags = 3 
+    objACE.AceType = ACETYPE_ACCESS_ALLOWED
+    objACE.Trustee = objTrustee
+
+    Set objSecurityDescriptor = objWMIService.Get("Win32_SecurityDescriptor").SpawnInstance_()
+    Set objDACL = Array(objACE)
+    objSecurityDescriptor.DACL = objDACL
+
+    Set objFolder = objWMIService.Get("Win32_Directory.Name='" & Replace(strPath, "\", "\\") & "'")
+    Set objInParams = objFolder.Methods_("SetSecurityDescriptor").InParameters.SpawnInstance_()
+    objInParams.Descriptor = objSecurityDescriptor
+
+    Set objOutParams = objWMIService.ExecMethod("Win32_Directory.Name='" & Replace(strPath, "\", "\\") & "'", "SetSecurityDescriptor", objInParams)
+
+    If objOutParams.ReturnValue = 0 Then
+        WScript.Echo "Successfully modified permissions"
+    Else
+        WScript.Echo "Failed to modify permissions, error code: " & objOutParams.ReturnValue
+    End If
+
+    SetPermissions = 0 
+End Function
