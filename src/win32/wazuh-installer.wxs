@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:ui="http://schemas.microsoft.com/wix/UIExtension">
     <Product Id="*" Name="Wazuh Agent" Language="1033" Version="4.9.0" Manufacturer="Wazuh, Inc." UpgradeCode="F495AC57-7BDE-4C4B-92D8-DBE40A9AA5A0">
         <Package Description="Wazuh helps you to gain security visibility into your infrastructure by monitoring hosts at an operating system and application level. It provides the following capabilities: log analysis, file integrity monitoring, intrusions detection and policy and compliance monitoring" Comments="wazuh-agent" InstallerVersion="200" Compressed="yes" />
         <Media Id="1" Cabinet="simple.cab" EmbedCab="yes" CompressionLevel="high" />
@@ -47,7 +47,6 @@
         <WixVariable Id="WixUIBannerBmp" Value="ui\bannrbmp.jpg" />
         <WixVariable Id="WixUIDialogBmp" Value="ui\dlgbmp.jpg" />
         <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Run Agent configuration interface" />
-        <Property Id="GENERATE_DUMP" Value="0" />
         <Property Id="ARPNOMODIFY" Value="yes" />
         <Property Id="ARPNOREPAIR" Value="yes" />
         <Property Id="ApplicationFolderName" Value="ossec-agent" />
@@ -66,7 +65,6 @@
 
         <Property Id="WixShellExecTarget" Value="[APPLICATIONFOLDER]win32ui.exe" />
         <CustomAction Id="LaunchUI" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
-        <CustomAction Id="GenerateDumpAction" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
 
         <Property Id="OSSECINSTALLED">
             <RegistrySearch Id="OssecInstalled" Type="raw" Root="HKLM" Key="System\CurrentControlSet\Services\OssecSvc" Name="DisplayName" />
@@ -128,15 +126,11 @@
 
         <UI>
             <UIRef Id="WixUI_Advanced" />
-            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4"><![CDATA[WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"]]></Publish>
-            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" />
+            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="CustomDlg" Order="4"><![CDATA[WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"]]></Publish>
+            <Publish Dialog="CustomDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+            <Publish Dialog="CustomDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomDlg" />
             <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchUI">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
-            <Dialog Id="ExitDialog" Width="370" Height="270" Title="Installation Complete">
-                <Control Id="GenerateDumpCheckbox" Type="CheckBox" X="20" Y="243" Width="290" Height="17"
-                    Property="GENERATE_DUMP" CheckBoxValue="1"
-                    Text="Automatic dump generation" />
-            </Dialog>
-            <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="GenerateDumpAction">GENERATE_DUMP = 1 and NOT Installed</Publish>
         </UI>
         <InstallExecuteSequence>
             <!-- Set OS VERSION -->
@@ -695,4 +689,16 @@
         </Feature>
         <MajorUpgrade Schedule="afterInstallInitialize" AllowDowngrades="yes" />
     </Product>
+    <Fragment>
+        <Dialog Id="CustomDlg" Width="370" Height="270" Title="Dump Generation">
+            <Control Id="Checkbox1" Type="CheckBox" X="20" Y="80" Width="200" Height="20"
+                     Property="GENERATE_DUMP" CheckBoxValue="1" Text="Automatic dump generation" />
+            <Control Id="Next" Type="PushButton" X="240" Y="243" Width="60" Height="17" Default="yes"
+                     Text="Next" />
+            <Control Id="Back" Type="PushButton" X="170" Y="243" Width="60" Height="17"
+                     Text="Back" />
+        </Dialog>
+
+        <Property Id="GENERATE_DUMP" Value="0" />
+    </Fragment>
 </Wix>
