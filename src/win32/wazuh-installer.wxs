@@ -128,11 +128,11 @@
 
         <UI>
             <UIRef Id="WixUI_Advanced" />
-            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4"><![CDATA[WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"]]></Publish>
-            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" />
+            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="CustomCheckDialog" Order="4"><![CDATA[WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"]]></Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomCheckDialog" />
             <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchUI">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
-            <Publish Dialog="CustomDialog" Control="Back" Event="NewDialog" Value="VerifyReadyDlg" />
-            <Publish Dialog="CustomDialog" Control="Next" Event="EndDialog" Value="Return" />
+            <Publish Dialog="CustomCheckDialog" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" />
+            <Publish Dialog="CustomCheckDialog" Control="Back" Event="NewDialog" Value="InstallDirDlg" />
         </UI>
         <InstallExecuteSequence>
             <!-- Set OS VERSION -->
@@ -692,19 +692,20 @@
         <MajorUpgrade Schedule="afterInstallInitialize" AllowDowngrades="yes" />
     </Product>
     <Fragment>
-        <Dialog Id="CustomDialog" Width="370" Height="270" Title="Custom Dialog">
-            <Control Id="GenerateDumpCheckbox" Type="CheckBox" X="20" Y="243" Width="290" Height="17"
-                Property="GENERATE_DUMP" CheckBoxValue="1"
-                Text="Enable automatic dump generation" />
+        <UI>
+            <Dialog Id="CustomCheckDialog" Width="370" Height="270" Title="Custom Checkbox Dialog">
+                <Control Id="GenerateDumpCheckbox" Type="CheckBox" X="20" Y="100" Width="330" Height="17"
+                    Property="GENERATE_DUMP" CheckBoxValue="1"
+                    Text="Enable automatic dump generation" />
 
-            <Control Id="Next" Type="PushButton" X="236" Y="243" Width="75" Height="23" Default="yes" Text="Next">
-                <Publish Event="EndDialog" Value="Return">1</Publish>
-            </Control>
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="75" Height="23" Default="yes" Text="Next">
+                    <Publish Event="NewDialog" Value="NextDialog">1</Publish>
+                </Control>
 
-            <Control Id="Back" Type="PushButton" X="156" Y="243" Width="75" Height="23" Text="Back">
-                <Publish Event="EndDialog" Value="Return">1</Publish>
-            </Control>
-        </Dialog>
+                <Control Id="Back" Type="PushButton" X="156" Y="243" Width="75" Height="23" Text="Back">
+                    <Publish Event="NewDialog" Value="PreviousDialog">1</Publish>
+                </Control>
+            </Dialog>
+        </UI>
     </Fragment>
-
 </Wix>
