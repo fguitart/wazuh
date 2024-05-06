@@ -47,8 +47,7 @@
         <WixVariable Id="WixUIBannerBmp" Value="ui\bannrbmp.jpg" />
         <WixVariable Id="WixUIDialogBmp" Value="ui\dlgbmp.jpg" />
         <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Run Agent configuration interface" />
-        <Property Id="ENABLE_DUMP" Value="0" />
-        <UIRef Id="CustomUIDlg" />
+        <Property Id="GENERATE_DUMP" Value="0" />
         <Property Id="ARPNOMODIFY" Value="yes" />
         <Property Id="ARPNOREPAIR" Value="yes" />
         <Property Id="ApplicationFolderName" Value="ossec-agent" />
@@ -67,6 +66,7 @@
 
         <Property Id="WixShellExecTarget" Value="[APPLICATIONFOLDER]win32ui.exe" />
         <CustomAction Id="LaunchUI" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
+        <CustomAction Id="GenerateDumpAction" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
 
         <Property Id="OSSECINSTALLED">
             <RegistrySearch Id="OssecInstalled" Type="raw" Root="HKLM" Key="System\CurrentControlSet\Services\OssecSvc" Name="DisplayName" />
@@ -113,6 +113,8 @@
         <CustomAction Id="CustomAction_RemoveAllScript" BinaryKey="RemoveAllScript" VBScriptCall="removeAll" Return="check" Execute="commit" Impersonate="no"/>
 
         <CustomAction Id="CheckSvcRunning" BinaryKey="InstallerScripts" VBScriptCall="CheckSvcRunning" Return="check" Execute="immediate" Impersonate="no"/>
+        <CustomAction Id="SetWixShellExecTarget" Property="WixShellExecTarget" Value="[APPLICATIONFOLDER]win32ui.exe" />
+
 
         <CustomAction Id="SetCustomActionDataValue" Return="check" Property="CustomAction_InstallerScripts" Value="&quot;[APPLICATIONFOLDER]&quot;/+/&quot;[OS_VERSION]&quot;/+/&quot;[WAZUH_MANAGER]&quot;/+/&quot;[WAZUH_MANAGER_PORT]&quot;/+/&quot;[WAZUH_PROTOCOL]&quot;/+/&quot;[NOTIFY_TIME]&quot;/+/&quot;[WAZUH_REGISTRATION_SERVER]&quot;/+/&quot;[WAZUH_REGISTRATION_PORT]&quot;/+/&quot;[WAZUH_REGISTRATION_PASSWORD]&quot;/+/&quot;[WAZUH_KEEP_ALIVE_INTERVAL]&quot;/+/&quot;[WAZUH_TIME_RECONNECT]&quot;/+/&quot;[WAZUH_REGISTRATION_CA]&quot;/+/&quot;[WAZUH_REGISTRATION_CERTIFICATE]&quot;/+/&quot;[WAZUH_REGISTRATION_KEY]&quot;/+/&quot;[WAZUH_AGENT_NAME]&quot;/+/&quot;[WAZUH_AGENT_GROUP]&quot;/+/&quot;[ENROLLMENT_DELAY]&quot;" />
         <CustomAction Id="CustomAction_InstallerScripts" BinaryKey="InstallerScripts" VBScriptCall="config" Return="check" Execute="commit" Impersonate="no"/>
@@ -127,9 +129,11 @@
 
         <UI>
             <UIRef Id="WixUI_Advanced" />
-            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4"><![CDATA[WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"]]></Publish>
-            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" />
+            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="CustomCheckDialog" Order="4"><![CDATA[WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"]]></Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomCheckDialog" />
             <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchUI">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+            <Publish Dialog="CustomCheckDialog" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" />
+            <Publish Dialog="CustomCheckDialog" Control="Back" Event="NewDialog" Value="InstallDirDlg" />
         </UI>
         
         <InstallExecuteSequence>
@@ -689,4 +693,21 @@
         </Feature>
         <MajorUpgrade Schedule="afterInstallInitialize" AllowDowngrades="yes" />
     </Product>
+    <Fragment>
+        <UI>
+            <Dialog Id="CustomCheckDialog" Width="370" Height="270" Title="Custom Checkbox Dialog">
+                <Control Id="GenerateDumpCheckbox" Type="CheckBox" X="20" Y="100" Width="330" Height="17"
+                    Property="GENERATE_DUMP" CheckBoxValue="1"
+                    Text="Enable automatic dump generation" />
+
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="75" Height="23" Default="yes" Text="Next">
+                    <Publish Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+                </Control>
+
+                <Control Id="Back" Type="PushButton" X="156" Y="243" Width="75" Height="23" Text="Back">
+                    <Publish Event="NewDialog" Value="InstallDirDlg">1</Publish>
+                </Control>
+            </Dialog>
+        </UI>
+    </Fragment>
 </Wix>
