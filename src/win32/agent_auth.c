@@ -301,6 +301,7 @@ void InstallAuthKeys(char *msg)
         FILE *fp;
 
         printf("INFO: Received response with agent key\n");
+        printf("Message to be removed later\n");
 
         key = msg + 9;
         tmpstr = strchr(key, '\'');

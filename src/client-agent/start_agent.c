@@ -177,6 +177,7 @@ void start_agent(int is_startup)
         if (agt->server[current_server_id + 1].rip) {
             current_server_id++;
             minfo("Trying next server ip in the line: '%s'.", agt->server[current_server_id].rip);
+            minfo("Message to be removed later.");
         } else {
             current_server_id = 0;
             mwarn("Unable to connect to any server.");
