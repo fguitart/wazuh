@@ -129,12 +129,11 @@
 
         <UI>
             <UIRef Id="WixUI_Advanced" />
-            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="CustomInstallDirDlg" Order="1" />
-            <Publish Dialog="CustomInstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="2" />
-            <Publish Dialog="CustomInstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="3" />
-            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomInstallDirDlg" />
+            <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="CustomCheckDialog" Order="4"><![CDATA[WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"]]></Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomCheckDialog" />
             <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchUI">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
-
+            <Publish Dialog="CustomCheckDialog" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" />
+            <Publish Dialog="CustomCheckDialog" Control="Back" Event="NewDialog" Value="InstallDirDlg" />
         </UI>
         
         <InstallExecuteSequence>
@@ -696,26 +695,23 @@
     </Product>
     <Fragment>
         <UI>
-            <Dialog Id="CustomInstallDirDlg" Width="370" Height="270" Title="Verify Installation Directory">
-                <Control Id="Title" Type="Text" X="20" Y="15" Width="330" Height="15" Text="Select Installation Directory" />
+            <Dialog Id="CustomCheckDialog" Width="370" Height="270" Title="Wazuh Agent Setup">
+                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" 
+                     Text="!(wix.WixUIBannerBmp)" />
 
-                <Control Id="Folder" Type="Text" X="20" Y="80" Width="330" Height="40" Text="[INSTALLDIR]" />
+                <Control Id="Description" Type="Text" X="20" Y="60" Width="330" Height="30"
+                    Text="Select this option to enable automatic core dump generation in case the installation fails." />
 
-                <Control Id="GenerateDumpCheckbox" Type="CheckBox" X="20" Y="140" Width="330" Height="17"
+                <Control Id="GenerateDumpCheckbox" Type="CheckBox" X="20" Y="100" Width="330" Height="17"
                     Property="GENERATE_DUMP" CheckBoxValue="1"
                     Text="Enable automatic dump generation" />
 
-                <Control Id="ChangeFolder" Type="PushButton" X="50" Y="243" Width="75" Height="23" Text="Change Folder">
-                    <Publish Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
-                    <Publish Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="75" Height="23" Default="yes" Text="Next">
+                    <Publish Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
                 </Control>
 
                 <Control Id="Back" Type="PushButton" X="156" Y="243" Width="75" Height="23" Text="Back">
-                    <Publish Event="NewDialog" Value="WelcomeDlg">1</Publish>
-                </Control>
-
-                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="75" Height="23" Default="yes" Text="Next">
-                    <Publish Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+                    <Publish Event="NewDialog" Value="InstallDirDlg">1</Publish>
                 </Control>
             </Dialog>
         </UI>
