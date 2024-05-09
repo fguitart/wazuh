@@ -218,7 +218,7 @@
     <status>success</status>
     <action>login</action>
     <description>Fortigate: User successfully logged into firewall interface.</description>
-    <group>gdpr_IV_32.2,gpg13_7.1,gpg13_7.2,hipaa_164.312.b,nist_800_53_AU.6,pci_dss_10.6.1,</group>
+    <group>authentication_success,gdpr_IV_32.2,gpg13_7.1,gpg13_7.2,hipaa_164.312.b,nist_800_53_AU.6,pci_dss_10.6.1,</group>
   </rule>
 
   <rule id="81627" level="4" frequency="18" timeframe="45" ignore="240">
